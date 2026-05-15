@@ -3,7 +3,7 @@
 #### **1. Frontmatter**
 *   **Paradigm:** Specification-Driven Development (SDD) and Logic-UI Decoupling (MVC).
 *   **Standard:** ECMAScript 2024+ (Vanilla JS).
-*   **Environment:** Node.js and npm (No Frameworks / No Vite).
+*   **Environment:** Node.js and npm .
 
 #### **2. Purpose & Context**
 Expert in modular, accessible, and high-performance web application architecture using native browser APIs. Specialist in complex algorithm resolution and robust Client-Server communication via Fetch.
