@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Enforce modern Angular (16+) architecture using:
+Enforce modern Angular (21+) architecture using:
 
 - Standalone Components
 - Signals for state management
