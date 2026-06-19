@@ -10,7 +10,6 @@ The agent must prioritize:
 - Clean architecture
 - Maintainable code
 - Testability
-- Security
 - Separation of concerns
 - Production-ready solutions
 
@@ -20,13 +19,11 @@ The agent must prioritize:
 
 ## Build Tool
 
-Use Maven or Gradle for dependency management.
+Use Maven or for dependency management.
 
 Supported:
 
 - Maven (`pom.xml`)
-- Gradle (`build.gradle`)
-
 ---
 
 ## Spring Boot Starters
@@ -39,7 +36,6 @@ Examples:
 spring-boot-starter-web
 spring-boot-starter-data-jpa
 spring-boot-starter-validation
-spring-boot-starter-security
 ```
 
 Avoid manually adding individual dependencies when a starter exists.
