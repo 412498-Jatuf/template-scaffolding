@@ -1,83 +1,32 @@
-
 # Spring Boot Best Practices Skill
-
 ## Purpose
-
-This skill helps the agent generate, review, and improve Spring Boot applications following established best practices.
-
-The agent must prioritize:
-
-- Clean architecture
-- Maintainable code
-- Testability
-- Separation of concerns
-- Production-ready solutions
+Enforce clean architecture, maintainability, high testability, and separation of concerns in Spring Boot applications.
 
 ---
 
-# Project Setup & Structure
+# Project Setup & Package Structure
 
 ## Build Tool
 
-Use Maven or for dependency management.
+- Use Maven (`pom.xml`) for dependency management.
 
-Supported:
+## Starters
 
-- Maven (`pom.xml`)
----
+- Always use official Spring Boot starters.
+- Avoid manual dependency management when possible.
+- Prevent dependency version conflicts.
 
-## Spring Boot Starters
+## Package Structure
 
-Prefer Spring Boot starters to simplify dependency management.
+- Organize code strictly by feature/domain.
+- Example domains:
+  - `com.example.app.user`
+  - `com.example.app.order`
 
-Examples:
-
-```xml
-spring-boot-starter-web
-spring-boot-starter-data-jpa
-spring-boot-starter-validation
-```
-
-Avoid manually adding individual dependencies when a starter exists.
-
----
-
-# Package Structure
-
-Organize the project by feature/domain instead of technical layers.
-
-Preferred structure:
-
-```
-com.example.app
-
-├── user
-│   ├── UserController
-│   ├── UserService
-│   ├── UserRepository
-│   ├── UserDTO
-│   └── UserEntity
-│
-├── order
-│   ├── OrderController
-│   ├── OrderService
-│   ├── OrderRepository
-│   ├── OrderDTO
-│   └── OrderEntity
-```
-
-Avoid:
-
-```
-com.example.app
-
-├── controller
-├── service
-├── repository
-└── entity
-```
-
-The agent should group code by business domain.
+- Never organize by technical layers:
+  - controller
+  - service
+  - repository
 
 ---
 
@@ -85,437 +34,152 @@ The agent should group code by business domain.
 
 ## Constructor Injection
 
-Always use constructor-based dependency injection.
+- Always use constructor-based injection.
+- Never use `@Autowired` field injection.
 
-Avoid:
+## Immutability
 
-```java
-@Autowired
-private UserService userService;
-```
+- All injected dependencies must be declared as:
+  - `private final`
 
-Prefer:
+## Spring Stereotypes
 
-```java
-@Service
-public class UserService {
+Use annotations according to responsibility:
 
-    private final UserRepository userRepository;
-
-    public UserService(UserRepository userRepository) {
-        this.userRepository = userRepository;
-    }
-}
-```
-
-Benefits:
-
-- Dependencies are explicit
-- Easier unit testing
-- Supports immutability
+- `@RestController` → REST API layer
+- `@Service` → Business logic
+- `@Repository` → Data access
 
 ---
 
-## Immutable Dependencies
-
-Dependency fields must be declared as:
-
-```java
-private final Dependency dependency;
-```
-
-Avoid mutable injected fields.
-
----
-
-## Component Stereotypes
-
-Use Spring annotations according to responsibility.
-
-| Annotation | Responsibility |
-|---|---|
-| `@Component` | Generic Spring component |
-| `@Service` | Business logic |
-| `@Repository` | Data access |
-| `@RestController` | REST API layer |
-
----
-
-# Configuration
+# Configuration & Secrets
 
 ## Externalized Configuration
 
-Store configuration outside the source code.
+- Use `application.yml` for application configuration.
+- Prefer hierarchical and readable configuration.
 
-Preferred:
+## Type-Safe Properties
 
-```
-application.yml
-```
+- Use `@ConfigurationProperties`.
+- Avoid manually reading environment variables.
 
-Example:
+## Profiles
 
-```yaml
-server:
-  port: 8080
+Separate configurations by environment:
 
-database:
-  url: localhost
-```
-
----
-
-## Type-Safe Configuration
-
-Use:
-
-```java
-@ConfigurationProperties
-```
-
-instead of manually reading configuration values.
-
-Example:
-
-```java
-@ConfigurationProperties(prefix = "database")
-public class DatabaseProperties {
-
-    private String url;
-
-}
-```
-
----
-
-## Spring Profiles
-
-Use profiles for environment-specific configuration.
-
-Examples:
-
-```
-application-dev.yml
-
-application-test.yml
-
-application-prod.yml
-```
-
----
+- `application-dev.yml`
+- `application-test.yml`
+- `application-prod.yml`
 
 ## Secrets Management
 
-Never hardcode secrets.
-
-Do not store:
-
-- Passwords
-- Tokens
-- API keys
-- Credentials
-
-Use:
-
-- Environment variables
-- HashiCorp Vault
-- AWS Secrets Manager
+- Never hardcode credentials.
+- Use environment variables or secret management tools.
 
 ---
 
-# Web Layer
+# Web & Service Layers
 
 ## REST API Design
 
-Create clear RESTful endpoints.
+- Follow consistent RESTful naming conventions.
+- Use correct HTTP methods.
 
-Example:
+## DTO Usage
 
-```
-GET    /users
-GET    /users/{id}
-POST   /users
-PUT    /users/{id}
-DELETE /users/{id}
-```
+- Never expose JPA entities directly through APIs.
+- Always use DTOs as API contracts.
+- Map entities to DTOs.
 
-Follow consistent naming conventions.
+## Validation
 
----
+- Validate incoming data using:
+  - Java Bean Validation annotations
+  - `@Valid`
 
-# DTO Usage
+## Global Error Handling
 
-Never expose JPA entities directly through APIs.
+- Implement centralized exception handling using:
+  - `@ControllerAdvice`
+  - `@ExceptionHandler`
 
-Avoid:
-
-```java
-@GetMapping
-public User getUser(){
-    return user;
-}
-```
-
-Prefer:
-
-```java
-@GetMapping
-public UserDTO getUser(){
-    return userMapper.toDTO(user);
-}
-```
-
-DTOs define the API contract.
-
----
-
-# Validation
-
-Use Java Bean Validation.
-
-Example:
-
-```java
-public class UserRequest {
-
-    @NotNull
-    private String name;
-
-    @Size(min = 8)
-    private String password;
-
-}
-```
-
-Controller:
-
-```java
-@PostMapping
-public ResponseEntity<?> create(
-    @Valid @RequestBody UserRequest request
-){
-
-}
-```
-
----
-
-# Error Handling
-
-Implement global exception handling.
-
-Use:
-
-```java
-@ControllerAdvice
-```
-
-and:
-
-```java
-@ExceptionHandler
-```
-
-Example:
-
-```java
-@ControllerAdvice
-public class GlobalExceptionHandler {
-
-}
-```
-
-All API errors should return consistent responses.
-
----
-
-# Service Layer
+- Ensure consistent API error responses.
 
 ## Business Logic
 
-Business rules belong inside:
-
-```java
-@Service
-```
-
-classes.
-
-Controllers should only:
-
-- Receive requests
-- Validate input
-- Call services
-- Return responses
-
----
-
-## Stateless Services
-
-Services must not maintain mutable state.
-
-Avoid:
-
-```java
-private List<User> users;
-```
-
-inside services.
-
----
+- Keep business rules inside stateless `@Service` classes.
+- Controllers must remain thin.
+- Controllers should only handle:
+  - Requests
+  - Validation
+  - Service calls
+  - Responses
 
 ## Transaction Management
 
-Use:
-
-```java
-@Transactional
-```
-
-for database operations.
-
-Example:
-
-```java
-@Transactional
-public void createOrder(Order order){
-
-}
-```
-
-Apply transactions only where required.
+- Use `@Transactional` only in service methods that require transaction boundaries.
 
 ---
 
-# Data Layer
+# Data Layer & Testing
 
 ## Spring Data JPA
 
-Repositories should extend:
+- Use:
+  - `JpaRepository`
+  - `CrudRepository`
 
-```java
-JpaRepository
-```
+for database access.
 
-or:
+## Queries & Projections
 
-```java
-CrudRepository
-```
-
-Example:
-
-```java
-@Repository
-public interface UserRepository 
-extends JpaRepository<User, Long>{
-
-}
-```
-
----
-
-## Custom Queries
-
-For complex database operations use:
-
-- `@Query`
-- JPA Criteria API
-- Specifications
-
-Example:
-
-```java
-@Query("SELECT u FROM User u WHERE u.email = :email")
-User findByEmail(String email);
-```
-
----
-
-## Projections
-
-Fetch only required data.
-
-Prefer DTO projections instead of loading complete entities when possible.
-
-Benefits:
-
-- Better performance
-- Less memory usage
-
----
+- Use `@Query` for custom database operations.
+- Prefer DTO projections.
+- Fetch only required data.
 
 ---
 
 # Testing
 
-## Unit Tests
+## Unit Testing
+
+- Use:
+  - JUnit 5
+  - Mockito
+
+- Focus tests on:
+  - Services
+  - Business logic
+  - Components
+
+- Maintain high test coverage.
+
+## Slice Testing
 
 Use:
 
-- JUnit 5
-- Mockito
+- `@WebMvcTest` for controllers.
+- `@DataJpaTest` for repositories.
 
-Example:
+## Integration Testing
 
-```java
-@Test
-void shouldCreateUser(){
-
-}
-```
-
-Test:
-
-- Services
-- Components
-- Business rules
+- Use `@SpringBootTest` only for full application context tests.
 
 ---
 
-## Integration Tests
-
-Use:
-
-```java
-@SpringBootTest
-```
-
-when loading the complete Spring context.
-
----
-
-## Test Slices
-
-Use focused tests.
-
-Controllers:
-
-```java
-@WebMvcTest
-```
-
-Repositories:
-
-```java
-@DataJpaTest
-```
-
----
 # Agent Behavior Rules
 
-When generating Spring Boot code:
+The agent must:
 
-1. Always use clean architecture principles.
-2. Prefer constructor injection.
-3. Keep injected dependencies immutable.
-4. Organize code by feature/domain.
-5. Use DTOs between API and database entities.
-6. Keep controllers thin.
-7. Put business rules inside services.
-8. Use repositories only for persistence.
-9. Write tests for important behavior.
-10. Use secure coding practices.
-11. Never expose secrets.
-12. Generate maintainable production-ready code.
-````
+1. Organize code by business domain/feature.
+2. Enforce constructor injection.
+3. Keep dependencies immutable using `private final`.
+4. Keep controllers thin.
+5. Isolate business logic inside stateless services.
+6. Always use DTOs between API and domain entities.
+7. Never return JPA entities directly.
+8. Implement global exception handling.
+9. Validate request payloads.
+10. Write focused tests using JUnit 5 and Mockito.
+11. Generate clean, maintainable, production-ready Spring Boot code.
