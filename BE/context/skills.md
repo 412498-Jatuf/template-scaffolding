@@ -18,15 +18,22 @@ Enforce clean architecture, maintainability, high testability, and separation of
 
 ## Package Structure
 
-- Organize code strictly by feature/domain.
-- Example domains:
-  - `com.example.app.user`
-  - `com.example.app.order`
+Package Structure
+Organize code strictly by technical layers.
 
-- Never organize by technical layers:
-  - controller
-  - service
-  - repository
+Example layers:
+
+com.example.app.controller
+
+com.example.app.service
+
+com.example.app.repository
+
+Never organize by feature/domain:
+
+user
+
+order
 
 ---
 
