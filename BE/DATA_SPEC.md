@@ -114,11 +114,61 @@ Mascota {
 |------------------------------------|-------------|-----------------------|
 | `jakarta.persistence.EntityNotFoundException` | 404         | `ErrorResponse` (mensaje de la excepcion) |
 | `MethodArgumentNotValidException`  | 400         | `ErrorResponse` (campo: mensaje) |
+| `BadCredentialsException`           | 401         | `ErrorResponse` ("Credenciales invalidas") |
+| `DataIntegrityViolationException`   | 409         | `ErrorResponse` (mensaje de la excepcion) |
 | `Exception` (generica)             | 500         | `ErrorResponse` ("Error interno del servidor") |
 
 ---
 
-## API REST
+## Autenticacion — `auth/`
+
+### UserEntity
+
+Tabla: `users`
+
+| Campo     | Tipo     | Restricciones |
+|-----------|---------|---------------|
+| `id`      | `Long`  | PK, AUTO_INCREMENT |
+| `username`| `String`| NOT NULL, UNIQUE, max 50 |
+| `email`   | `String`| NOT NULL, UNIQUE, max 100 |
+| `password`| `String`| NOT NULL, BCrypt hashed |
+
+### DTOs
+
+#### RegisterRequestDTO
+
+| Campo     | Tipo     | Validaciones |
+|-----------|---------|--------------|
+| `username`| `String`| `@NotBlank`, `@Size(max=50)` |
+| `email`   | `String`| `@NotBlank`, `@Email`, `@Size(max=100)` |
+| `password`| `String`| `@NotBlank`, `@Size(min=6)` |
+
+#### LoginRequestDTO
+
+| Campo     | Tipo     | Validaciones |
+|-----------|---------|--------------|
+| `email`   | `String`| `@NotBlank` |
+| `password`| `String`| `@NotBlank` |
+
+#### UserResponseDTO
+
+| Campo     | Tipo     |
+|-----------|---------|
+| `id`      | `Long`  |
+| `username`| `String`|
+| `email`   | `String`|
+
+### Endpoints Auth
+
+| Metodo | Endpoint              | Request Body          | Response Body          | Status |
+|--------|-----------------------|-----------------------|------------------------|--------|
+| `POST` | `/api/auth/register`  | `RegisterRequestDTO`  | `UserResponseDTO`      | 201/400/409 |
+| `POST` | `/api/auth/login`     | `LoginRequestDTO`     | `UserResponseDTO`      | 200/401 |
+| `GET`  | `/api/auth/me`        | —                     | `UserResponseDTO`      | 200/401 |
+
+### API REST (protegida)
+
+Todos los endpoints bajo `/api/mascotas` requieren autenticacion HTTP Basic.
 
 | Metodo   | Endpoint              | Request Body        | Response Body         | Status         |
 |----------|-----------------------|---------------------|-----------------------|----------------|
@@ -130,5 +180,7 @@ Mascota {
 
 Errores:
 - `400 Bad Request` — `ErrorResponse` con detalle de campos invalidos
+- `401 Unauthorized` — credenciales invalidas o no autenticado
 - `404 Not Found` — `ErrorResponse` con mensaje de entidad no encontrada
+- `409 Conflict` — email o username ya registrado
 - `500 Internal Server Error` — `ErrorResponse` generico

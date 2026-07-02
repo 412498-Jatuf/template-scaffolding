@@ -1,19 +1,23 @@
 package ar.utn.frc.tup.pii.integration;
 
 import ar.utn.frc.tup.pii.dto.request.MascotaRequestDTO;
+import ar.utn.frc.tup.pii.dto.request.RegisterRequestDTO;
 import ar.utn.frc.tup.pii.enums.Especie;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.ClientHttpRequestInterceptor;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDate;
+import java.util.Base64;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -29,8 +33,31 @@ class MascotaIntegrationTest {
 
     private String baseUrl;
 
+    private static final String TEST_EMAIL = "test@test.com";
+    private static final String TEST_PASSWORD = "password123";
+
     @BeforeEach
     void setUp() {
+        String authUrl = "http://localhost:" + port + "/api/auth";
+
+        try {
+            RegisterRequestDTO register = RegisterRequestDTO.builder()
+                    .username("testuser")
+                    .email(TEST_EMAIL)
+                    .password(TEST_PASSWORD)
+                    .build();
+            restTemplate.postForEntity(authUrl + "/register", register, String.class);
+        } catch (HttpClientErrorException ignored) {
+        }
+
+        restTemplate.getInterceptors().clear();
+        restTemplate.getInterceptors().add((request, body, execution) -> {
+            byte[] authBytes = (TEST_EMAIL + ":" + TEST_PASSWORD).getBytes();
+            String encoded = Base64.getEncoder().encodeToString(authBytes);
+            request.getHeaders().add(HttpHeaders.AUTHORIZATION, "Basic " + encoded);
+            return execution.execute(request, body);
+        });
+
         baseUrl = "http://localhost:" + port + "/api/mascotas";
     }
 

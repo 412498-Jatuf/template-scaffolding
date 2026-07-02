@@ -3,7 +3,7 @@ package ar.utn.frc.tup.pii.service.impl;
 import ar.utn.frc.tup.pii.dto.request.MascotaRequestDTO;
 import ar.utn.frc.tup.pii.dto.response.MascotaResponseDTO;
 import ar.utn.frc.tup.pii.entity.MascotaEntity;
-import ar.utn.frc.tup.pii.mapper.MascotaMapper;
+import ar.utn.frc.tup.pii.mapper.GenericMapper;
 import ar.utn.frc.tup.pii.repository.MascotaRepository;
 import ar.utn.frc.tup.pii.service.MascotaService;
 import jakarta.persistence.EntityNotFoundException;
@@ -18,14 +18,14 @@ import java.util.List;
 public class MascotaServiceImpl implements MascotaService {
 
     private final MascotaRepository repository;
-    private final MascotaMapper mapper;
+    private final GenericMapper genericMapper;
 
     @Override
     @Transactional(readOnly = true)
     public List<MascotaResponseDTO> findAll() {
         return repository.findAll()
                 .stream()
-                .map(mapper::toResponseDTO)
+                .map(e -> genericMapper.toDto(e, MascotaResponseDTO.class))
                 .toList();
     }
 
@@ -34,15 +34,15 @@ public class MascotaServiceImpl implements MascotaService {
     public MascotaResponseDTO findById(Long id) {
         MascotaEntity entity = repository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Mascota no encontrada con id: " + id));
-        return mapper.toResponseDTO(entity);
+        return genericMapper.toDto(entity, MascotaResponseDTO.class);
     }
 
     @Override
     @Transactional
     public MascotaResponseDTO create(MascotaRequestDTO requestDTO) {
-        MascotaEntity entity = mapper.toEntity(requestDTO);
+        MascotaEntity entity = genericMapper.toEntity(requestDTO, MascotaEntity.class);
         entity = repository.save(entity);
-        return mapper.toResponseDTO(entity);
+        return genericMapper.toDto(entity, MascotaResponseDTO.class);
     }
 
     @Override
@@ -50,9 +50,9 @@ public class MascotaServiceImpl implements MascotaService {
     public MascotaResponseDTO update(Long id, MascotaRequestDTO requestDTO) {
         MascotaEntity entity = repository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Mascota no encontrada con id: " + id));
-        mapper.updateEntity(requestDTO, entity);
+        genericMapper.updateEntity(requestDTO, entity);
         entity = repository.save(entity);
-        return mapper.toResponseDTO(entity);
+        return genericMapper.toDto(entity, MascotaResponseDTO.class);
     }
 
     @Override

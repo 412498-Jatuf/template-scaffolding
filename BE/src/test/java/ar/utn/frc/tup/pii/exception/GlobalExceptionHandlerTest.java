@@ -3,6 +3,7 @@ package ar.utn.frc.tup.pii.exception;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BeanPropertyBindingResult;
@@ -64,6 +65,32 @@ class GlobalExceptionHandlerTest {
         assertNotNull(response.getBody());
         assertEquals(500, response.getBody().getStatus());
         assertEquals("Error interno del servidor", response.getBody().getMessage());
+        assertNotNull(response.getBody().getTimestamp());
+    }
+
+    @Test
+    void handleBadCredentials_ShouldReturn401() {
+        BadCredentialsException ex = new BadCredentialsException("Credenciales invalidas");
+
+        ResponseEntity<ErrorResponse> response = handler.handleBadCredentials(ex);
+
+        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals(401, response.getBody().getStatus());
+        assertEquals("Credenciales invalidas", response.getBody().getMessage());
+        assertNotNull(response.getBody().getTimestamp());
+    }
+
+    @Test
+    void handleDataIntegrity_ShouldReturn409() {
+        DataIntegrityViolationException ex = new DataIntegrityViolationException("El email ya esta registrado");
+
+        ResponseEntity<ErrorResponse> response = handler.handleDataIntegrity(ex);
+
+        assertEquals(HttpStatus.CONFLICT, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals(409, response.getBody().getStatus());
+        assertTrue(response.getBody().getMessage().contains("El email ya esta registrado"));
         assertNotNull(response.getBody().getTimestamp());
     }
 }

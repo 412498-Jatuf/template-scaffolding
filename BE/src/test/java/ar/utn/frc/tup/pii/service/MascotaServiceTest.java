@@ -4,7 +4,7 @@ import ar.utn.frc.tup.pii.dto.request.MascotaRequestDTO;
 import ar.utn.frc.tup.pii.dto.response.MascotaResponseDTO;
 import ar.utn.frc.tup.pii.entity.MascotaEntity;
 import ar.utn.frc.tup.pii.enums.Especie;
-import ar.utn.frc.tup.pii.mapper.MascotaMapper;
+import ar.utn.frc.tup.pii.mapper.GenericMapper;
 import ar.utn.frc.tup.pii.repository.MascotaRepository;
 import ar.utn.frc.tup.pii.service.impl.MascotaServiceImpl;
 import jakarta.persistence.EntityNotFoundException;
@@ -34,7 +34,7 @@ class MascotaServiceTest {
     private MascotaRepository repository;
 
     @Mock
-    private MascotaMapper mapper;
+    private GenericMapper genericMapper;
 
     @InjectMocks
     private MascotaServiceImpl service;
@@ -81,7 +81,7 @@ class MascotaServiceTest {
     @Test
     void findAll_ShouldReturnListOfMascotas() {
         when(repository.findAll()).thenReturn(List.of(entity));
-        when(mapper.toResponseDTO(entity)).thenReturn(responseDTO);
+        when(genericMapper.toDto(entity, MascotaResponseDTO.class)).thenReturn(responseDTO);
 
         List<MascotaResponseDTO> result = service.findAll();
 
@@ -104,7 +104,7 @@ class MascotaServiceTest {
     @Test
     void findById_ShouldReturnMascota() {
         when(repository.findById(1L)).thenReturn(Optional.of(entity));
-        when(mapper.toResponseDTO(entity)).thenReturn(responseDTO);
+        when(genericMapper.toDto(entity, MascotaResponseDTO.class)).thenReturn(responseDTO);
 
         MascotaResponseDTO result = service.findById(1L);
 
@@ -122,9 +122,9 @@ class MascotaServiceTest {
 
     @Test
     void create_ShouldSaveAndReturnMascota() {
-        when(mapper.toEntity(requestDTO)).thenReturn(entity);
+        when(genericMapper.toEntity(requestDTO, MascotaEntity.class)).thenReturn(entity);
         when(repository.save(entity)).thenReturn(entity);
-        when(mapper.toResponseDTO(entity)).thenReturn(responseDTO);
+        when(genericMapper.toDto(entity, MascotaResponseDTO.class)).thenReturn(responseDTO);
 
         MascotaResponseDTO result = service.create(requestDTO);
 
@@ -136,15 +136,15 @@ class MascotaServiceTest {
     @Test
     void update_ShouldUpdateAndReturnMascota() {
         when(repository.findById(1L)).thenReturn(Optional.of(entity));
-        doNothing().when(mapper).updateEntity(requestDTO, entity);
+        doNothing().when(genericMapper).updateEntity(requestDTO, entity);
         when(repository.save(entity)).thenReturn(entity);
-        when(mapper.toResponseDTO(entity)).thenReturn(responseDTO);
+        when(genericMapper.toDto(entity, MascotaResponseDTO.class)).thenReturn(responseDTO);
 
         MascotaResponseDTO result = service.update(1L, requestDTO);
 
         assertNotNull(result);
         assertEquals("Firulais", result.getNombre());
-        verify(mapper).updateEntity(requestDTO, entity);
+        verify(genericMapper).updateEntity(requestDTO, entity);
     }
 
     @Test
